@@ -9,25 +9,17 @@ import ProfileScreen from "@/screens/ProfileScreen";
 
 type AppScreen = "home" | "detail" | "profile";
 
-const AppContent = () => {
-  const { user } = useAuth();
+const Index = () => {
+  const { user, setAesthetic } = useAuth();
   const [screen, setScreen] = useState<AppScreen>("home");
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
 
-  // Not logged in
   if (!user) return <LoginScreen />;
-
-  // Needs quiz
   if (!user.aesthetic) return <QuizScreen />;
 
   const handleOutfitClick = (outfit: Outfit) => {
     setSelectedOutfit(outfit);
     setScreen("detail");
-  };
-
-  const handleRetakeQuiz = () => {
-    // This resets aesthetic via AuthContext — we just need to navigate to quiz
-    // We can call setAesthetic(null) from context
   };
 
   return (
@@ -46,7 +38,7 @@ const AppContent = () => {
       )}
       {screen === "profile" && (
         <ProfileScreen
-          onRetakeQuiz={() => { /* handled below */ }}
+          onRetakeQuiz={() => setAesthetic(null)}
           onOutfitClick={(outfit) => {
             setSelectedOutfit(outfit);
             setScreen("detail");
@@ -54,7 +46,6 @@ const AppContent = () => {
         />
       )}
 
-      {/* Bottom nav */}
       {screen !== "detail" && (
         <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border px-6 py-3 flex items-center justify-around">
           <button
@@ -81,4 +72,4 @@ const AppContent = () => {
   );
 };
 
-export default AppContent;
+export default Index;
