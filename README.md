@@ -1,4 +1,4 @@
-# Aesthetic Moodboard Magic
+# AestheticX AI
 
 ## Tech Stack
 
