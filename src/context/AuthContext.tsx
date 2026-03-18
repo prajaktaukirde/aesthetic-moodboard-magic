@@ -7,10 +7,13 @@ export type Aesthetic =
   | "Dark Academia"
   | null;
 
+export type Gender = "Female" | "Male" | "Non-binary" | "Prefer not to say" | null;
+
 interface User {
   name: string;
   email: string;
   aesthetic: Aesthetic;
+  gender: Gender;
 }
 
 interface AuthContextType {
