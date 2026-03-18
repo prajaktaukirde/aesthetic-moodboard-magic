@@ -1,4 +1,4 @@
-# AestheticX AI
+# AestheticX AI App
 
 ## Tech Stack
 
