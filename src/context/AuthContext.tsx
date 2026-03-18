@@ -7,10 +7,13 @@ export type Aesthetic =
   | "Dark Academia"
   | null;
 
+export type Gender = "Female" | "Male" | "Non-binary" | "Prefer not to say" | null;
+
 interface User {
   name: string;
   email: string;
   aesthetic: Aesthetic;
+  gender: Gender;
 }
 
 interface AuthContextType {
@@ -19,6 +22,7 @@ interface AuthContextType {
   login: (email: string, name?: string) => void;
   logout: () => void;
   setAesthetic: (aesthetic: Aesthetic) => void;
+  setGender: (gender: Gender) => void;
   toggleSave: (outfitId: number) => void;
   isSaved: (outfitId: number) => boolean;
 }
@@ -34,6 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       name: name || email.split("@")[0],
       email,
       aesthetic: null,
+      gender: null,
     });
   };
 
@@ -45,6 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setAesthetic = (aesthetic: Aesthetic) => {
     if (!user) return;
     setUser((prev) => prev ? { ...prev, aesthetic } : null);
+  };
+
+  const setGender = (gender: Gender) => {
+    if (!user) return;
+    setUser((prev) => prev ? { ...prev, gender } : null);
   };
 
   const toggleSave = (outfitId: number) => {
@@ -59,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, savedOutfits, login, logout, setAesthetic, toggleSave, isSaved }}
+      value={{ user, savedOutfits, login, logout, setAesthetic, setGender, toggleSave, isSaved }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { useAuth, Aesthetic } from "@/context/AuthContext";
+import { useAuth, Aesthetic, Gender } from "@/context/AuthContext";
 import { aestheticLabels } from "@/data/outfits";
+
+const genderOptions: { label: string; emoji: string; value: Gender }[] = [
+  { label: "Female", emoji: "🌸", value: "Female" },
+  { label: "Male", emoji: "🌊", value: "Male" },
+  { label: "Non-binary", emoji: "✦", value: "Non-binary" },
+  { label: "Prefer not to say", emoji: "○", value: "Prefer not to say" },
+];
 
 const questions = [
   {
@@ -41,23 +48,17 @@ const questions = [
 const determineAesthetic = (answers: Record<string, string>): Aesthetic => {
   const { colors, silhouette, vibe } = answers;
 
-  if (
-    vibe === "Romantic" || silhouette === "Feminine" || colors === "Pastel"
-  ) return "Coquette";
-
-  if (
-    vibe === "Intellectual" || silhouette === "Layered" || colors === "Earthy"
-  ) return "Dark Academia";
-
-  if (
-    vibe === "Street" || silhouette === "Oversized" || colors === "Bold"
-  ) return "Streetwear";
+  if (vibe === "Romantic" || silhouette === "Feminine" || colors === "Pastel") return "Coquette";
+  if (vibe === "Intellectual" || silhouette === "Layered" || colors === "Earthy") return "Dark Academia";
+  if (vibe === "Street" || silhouette === "Oversized" || colors === "Bold") return "Streetwear";
 
   return "Minimal";
 };
 
 const QuizScreen = () => {
-  const { setAesthetic } = useAuth();
+  const { setAesthetic, setGender } = useAuth();
+  const [genderStep, setGenderStep] = useState(true);
+  const [selectedGender, setSelectedGender] = useState<Gender>(null);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string | null>(null);
@@ -67,9 +68,13 @@ const QuizScreen = () => {
   const currentQuestion = questions[step];
   const isLast = step === questions.length - 1;
 
-  const handleSelect = (value: string) => {
-    setSelected(value);
+  const handleGenderConfirm = () => {
+    if (!selectedGender) return;
+    setGender(selectedGender);
+    setGenderStep(false);
   };
+
+  const handleSelect = (value: string) => setSelected(value);
 
   const handleNext = () => {
     if (!selected) return;
@@ -80,20 +85,67 @@ const QuizScreen = () => {
     if (isLast) {
       setRevealing(true);
       const aesthetic = determineAesthetic(newAnswers);
-      setTimeout(() => {
-        setResult(aesthetic);
-      }, 800);
+      setTimeout(() => setResult(aesthetic), 800);
     } else {
       setStep((s) => s + 1);
     }
   };
 
   const handleConfirm = () => {
-    if (result) {
-      setAesthetic(result);
-    }
+    if (result) setAesthetic(result);
   };
 
+  // Gender selection step
+  if (genderStep) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
+        <div className="w-full max-w-sm animate-fade-up">
+          <div className="text-center mb-8">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Before we start</p>
+            <div className="text-4xl mb-4">💫</div>
+            <h2 className="font-display text-3xl text-foreground">How do you identify?</h2>
+            <p className="text-sm text-muted-foreground mt-2">This helps us personalise your style feed</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            {genderOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedGender(option.value)}
+                className={`p-5 rounded-2xl border text-center transition-all duration-200 ${
+                  selectedGender === option.value
+                    ? "border-primary bg-primary-light shadow-primary"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-accent/30"
+                }`}
+              >
+                <div className="text-3xl mb-2">{option.emoji}</div>
+                <p className="font-medium text-sm text-foreground">{option.label}</p>
+                <div
+                  className={`w-4 h-4 rounded-full border-2 mx-auto mt-2 flex items-center justify-center transition-all ${
+                    selectedGender === option.value ? "border-primary bg-primary" : "border-border"
+                  }`}
+                >
+                  {selectedGender === option.value && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleGenderConfirm}
+            disabled={!selectedGender}
+            className="w-full py-4 rounded-xl bg-gradient-primary text-primary-foreground font-medium shadow-primary hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          >
+            Continue →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Revealing animation
   if (revealing && !result) {
     return (
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
@@ -105,6 +157,7 @@ const QuizScreen = () => {
     );
   }
 
+  // Result screen
   if (result) {
     const info = aestheticLabels[result];
     return (
@@ -147,6 +200,7 @@ const QuizScreen = () => {
     );
   }
 
+  // Quiz questions
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <div className="w-full max-w-sm animate-fade-up">
@@ -189,9 +243,7 @@ const QuizScreen = () => {
                 </div>
                 <div
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                    selected === option.value
-                      ? "border-primary bg-primary"
-                      : "border-border"
+                    selected === option.value ? "border-primary bg-primary" : "border-border"
                   }`}
                 >
                   {selected === option.value && (
