@@ -17,10 +17,21 @@ const HomeScreen = ({ onOutfitClick, onProfileClick }: HomeScreenProps) => {
     user?.aesthetic ?? "All"
   );
 
-  const filtered =
+  // Filter by aesthetic
+  const aestheticFiltered =
     filter === "All"
       ? outfits
       : outfits.filter((o) => o.aesthetic === filter);
+
+  // Sort: gender-matching outfits appear first, then unisex, then others
+  const sorted = [...aestheticFiltered].sort((a, b) => {
+    const userGender = user?.gender;
+    if (!userGender || userGender === "Prefer not to say" || userGender === "Non-binary") return 0;
+
+    const aMatch = a.gender === userGender ? 0 : a.gender === "Unisex" ? 1 : 2;
+    const bMatch = b.gender === userGender ? 0 : b.gender === "Unisex" ? 1 : 2;
+    return aMatch - bMatch;
+  });
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -28,6 +39,13 @@ const HomeScreen = ({ onOutfitClick, onProfileClick }: HomeScreenProps) => {
     if (h < 18) return "Good afternoon";
     return "Good evening";
   };
+
+  const genderLabel =
+    user?.gender === "Female"
+      ? "Women"
+      : user?.gender === "Male"
+      ? "Men"
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,7 +82,11 @@ const HomeScreen = ({ onOutfitClick, onProfileClick }: HomeScreenProps) => {
             <br />for your vibe.
           </p>
           <p className="text-muted-foreground text-sm mt-2">
-            {filtered.length} looks · AI-matched to your style
+            {sorted.length} looks
+            {genderLabel && filter === "All" && (
+              <span className="ml-1">· showing <span className="text-primary font-medium">{genderLabel}</span> first</span>
+            )}
+            {" · AI-matched to your style"}
           </p>
         </div>
 
@@ -85,9 +107,19 @@ const HomeScreen = ({ onOutfitClick, onProfileClick }: HomeScreenProps) => {
           ))}
         </div>
 
+        {/* Gender hint badge */}
+        {genderLabel && filter === "All" && (
+          <div className="flex items-center gap-2 mt-2 mb-1">
+            <span className="text-[11px] px-3 py-1 rounded-full bg-primary-light text-primary border border-primary/20 font-medium">
+              {genderLabel === "Women" ? "🌸" : "🌊"} {genderLabel}'s picks first
+            </span>
+            <span className="text-[11px] text-muted-foreground">Tap All to see everything</span>
+          </div>
+        )}
+
         {/* Outfit grid */}
-        <div className="grid grid-cols-2 gap-4 py-6">
-          {filtered.map((outfit, i) => (
+        <div className="grid grid-cols-2 gap-4 py-4">
+          {sorted.map((outfit, i) => (
             <div
               key={outfit.id}
               className="animate-fade-up"
@@ -98,7 +130,7 @@ const HomeScreen = ({ onOutfitClick, onProfileClick }: HomeScreenProps) => {
           ))}
         </div>
 
-        {filtered.length === 0 && (
+        {sorted.length === 0 && (
           <div className="text-center py-16">
             <p className="text-3xl mb-3">🌿</p>
             <p className="font-display text-xl text-foreground">No outfits yet</p>
